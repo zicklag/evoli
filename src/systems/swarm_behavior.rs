@@ -1,6 +1,6 @@
 use amethyst::{
     core::{
-        nalgebra::Vector3,
+        math::Vector3,
         timing::Time,
         transform::components::{Parent, Transform},
     },
@@ -42,7 +42,7 @@ impl<'s> System<'s> for SwarmSpawnSystem {
             let x = rng.gen_range(-10.0, 10.0);
             let y = rng.gen_range(-10.0, 10.0);
             let mut transform = Transform::default();
-            transform.set_xyz(x, y, 0.0);
+            transform.set_translation_xyz(x, y, 2.0);
             swarm_entity_builder = swarm_entity_builder.with(transform);
             let movement = Movement {
                 velocity: Vector3::new(0.0, 0.0, 0.0),
@@ -68,8 +68,8 @@ impl<'s> System<'s> for SwarmSpawnSystem {
                 let mut transform = Transform::default();
                 let x = rng.gen_range(-1.0, 1.0);
                 let y = rng.gen_range(-1.0, 1.0);
-                transform.set_xyz(x, y, 0.0);
-                transform.set_scale(0.3, 0.3, 1.0);
+                transform.set_translation_xyz(x, y, 0.0);
+                transform.set_scale(Vector3::new(0.1, 0.1, 0.1));
                 let parent = Parent {
                     entity: swarm_entity,
                 };
@@ -139,6 +139,11 @@ impl<'s> System<'s> for SwarmBehaviorSystem {
         (_entities, time, transforms, _swarm_centers, swarm_behaviors, mut movements): Self::SystemData,
     ) {
         let delta_seconds = time.delta_seconds();
+
+        // avoid divide-by-zero when delta_seconds is zero
+        if delta_seconds <= f32::EPSILON {
+            return;
+        }
         let time_step = 0.01;
         let iterations = (delta_seconds / time_step) as u32 + 1;
         for (transform, swarm_behavior, mut movement) in

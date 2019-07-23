@@ -1,11 +1,12 @@
 use amethyst::{
-    assets::{PrefabData, PrefabError, ProgressCounter},
-    core::{nalgebra::Vector3, Named},
+    assets::{AssetPrefab, PrefabData, ProgressCounter},
+    core::{math::Vector3, Named},
     derive::PrefabData,
     ecs::{Component, DenseVecStorage, Entity, NullStorage, WriteStorage},
-    renderer::{GraphicsPrefab, ObjFormat, PosNormTex, TextureFormat},
+    gltf::{GltfSceneAsset, GltfSceneFormat},
+    Error,
 };
-use amethyst_inspector::Inspect;
+//use amethyst_inspector::Inspect;
 
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +17,14 @@ use crate::components::{
 
 pub type CreatureType = String;
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PrefabData, Inspect)]
+// tag all creatures for when we need to run operations against everything
+#[derive(Clone, Copy, Debug, Default, PrefabData)]
+pub struct CreatureTag;
+impl Component for CreatureTag {
+    type Storage = NullStorage<Self>;
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PrefabData)]
 #[prefab(Component)]
 pub struct RicochetTag;
 
@@ -24,7 +32,7 @@ impl Component for RicochetTag {
     type Storage = NullStorage<Self>;
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PrefabData, Inspect)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PrefabData)]
 #[prefab(Component)]
 pub struct IntelligenceTag;
 impl Component for IntelligenceTag {
@@ -34,7 +42,7 @@ impl Component for IntelligenceTag {
 ///
 ///
 ///
-#[derive(Clone, smart_default::SmartDefault, Inspect, Debug, Deserialize, Serialize, PrefabData)]
+#[derive(Clone, smart_default::SmartDefault, Debug, Deserialize, Serialize, PrefabData)]
 #[prefab(Component)]
 pub struct Movement {
     #[default(Vector3::zeros())]
@@ -48,7 +56,7 @@ impl Component for Movement {
 ///
 ///
 ///
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PrefabData, Inspect)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PrefabData)]
 #[prefab(Component)]
 pub struct Wander {
     pub angle: f32,
@@ -59,13 +67,6 @@ impl Component for Wander {
 }
 
 impl Wander {
-    pub fn new(radius: f32) -> Wander {
-        Wander {
-            angle: 0.0,
-            radius: radius,
-        }
-    }
-
     pub fn get_direction(&self) -> Vector3<f32> {
         Vector3::new(
             self.radius * self.angle.cos(),
@@ -83,8 +84,11 @@ impl Wander {
 #[serde(default)]
 #[serde(deny_unknown_fields)]
 pub struct CreaturePrefabData {
+    #[serde(skip)]
+    tag: CreatureTag,
+
     pub name: Option<Named>,
-    graphics: Option<GraphicsPrefab<Vec<PosNormTex>, ObjFormat, TextureFormat>>,
+    gltf: Option<AssetPrefab<GltfSceneAsset, GltfSceneFormat>>,
     movement: Option<Movement>,
     wander: Option<Wander>,
     collider: Option<Circle>,

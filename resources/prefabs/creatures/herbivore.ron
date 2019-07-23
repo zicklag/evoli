@@ -6,12 +6,7 @@ Prefab (
                 name: (
                     name: "Herbivore"
                 ),
-                graphics: (
-                    mesh: Shape((shape: Plane(None),)),
-                    material: (
-                        albedo: File("assets/herbivore.png", Png, (channel: Srgb),),
-                    ),
-                ),
+                gltf: File("assets/slime.glb", ()),
                 movement: (
                     velocity: [0.0, 0.0, 0.0],
                     max_movement_speed: 1.75,

@@ -1,16 +1,17 @@
-use amethyst::core::nalgebra::*;
-use amethyst::core::transform::Transform;
-use amethyst::core::Time;
-use amethyst::ecs::*;
-use shred::Resource;
+use amethyst::{
+    core::{math::*, transform::Transform, Time},
+    ecs::*,
+};
+
+use std::f32;
+use std::marker::PhantomData;
 
 use crate::components::combat::{FactionPrey, HasFaction};
 use crate::components::creatures::*;
-use std::marker::PhantomData;
 
 /// A query is a component that contains the queried bit set that can be used to join with other components
 pub struct Query<T>(BitSet, PhantomData<T>);
-impl<T: Resource> Component for Query<T> {
+impl<T: shred::Resource> Component for Query<T> {
     type Storage = HashMapStorage<Self>;
 }
 
@@ -97,7 +98,7 @@ impl<T> Closest<T> {
 
 impl<T> Component for Closest<T>
 where
-    T: Resource + Default,
+    T: shred::Resource + Default,
 {
     type Storage = DenseVecStorage<Self>;
 }
@@ -112,7 +113,7 @@ pub struct ClosestSystem<T: Default>(PhantomData<T>);
 
 impl<'s, T> System<'s> for ClosestSystem<T>
 where
-    T: Resource + Default,
+    T: shred::Resource + Default,
 {
     type SystemData = (
         Entities<'s>,
@@ -146,13 +147,14 @@ where
                 let sq_distance = difference.magnitude_squared();
                 if sq_distance < min_sq_distance {
                     min_sq_distance = sq_distance;
-                    closest_opt = Some(Closest::<T>::new(difference));
+                    closest_opt = Some(difference);
                 }
             }
 
             if let Some(c) = closest_opt {
+                let closest_component = Closest::new(c);
                 closest
-                    .insert(entity, c)
+                    .insert(entity, closest_component)
                     .expect("unreachable: we just queried");
             }
         }
@@ -180,7 +182,7 @@ impl<T> SeekSystem<T> {
 
 impl<'s, T> System<'s> for SeekSystem<T>
 where
-    T: Resource + Default,
+    T: shred::Resource + Default,
 {
     type SystemData = (
         Entities<'s>,
@@ -192,7 +194,7 @@ where
     fn run(&mut self, (_entities, closest_things, time, mut movements): Self::SystemData) {
         let delta_time = time.delta_seconds();
         for (movement, closest) in (&mut movements, &closest_things).join() {
-            if closest.distance.norm() == 0.0 {
+            if closest.distance.norm() < f32::EPSILON {
                 continue;
             }
             let target_velocity = closest.distance.normalize() * self.attraction_magnitude;

@@ -6,12 +6,7 @@ Prefab (
                 name: (
                     name: "Plant"
                 ),
-                graphics: (
-                    mesh: Shape((shape: Plane(None),)),
-                    material: (
-                        albedo: File("assets/simply_plant.png", Png, (channel: Srgb),),
-                    ),
-                ),
+                gltf: File("assets/bush.glb", ()),
                 digestion: (
                     digestion: (
                         nutrition_burn_rate: 1.0,

@@ -6,19 +6,14 @@ Prefab (
                 name: (
                     name: "Carnivore"
                 ),
-                graphics: (
-                    mesh: Shape((shape: Plane(None),)),
-                    material: (
-                        albedo: File("assets/carnivore.png", Png, (channel: Srgb),),
-                    ),
-                ),
+                gltf: File("assets/devil_slime.glb", ()),
                 movement: (
                     velocity: [0.0, 0.0, 0.0],
                     max_movement_speed: 2.0,
                 ),
                 wander: (
                     angle: 0.0,
-                    radius: 1.0,
+                    radius: 2.0,
                 ),
                 collider: (
                     radius: 0.45,
